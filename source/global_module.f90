@@ -59,10 +59,12 @@
 
       real*8,parameter    :: energy=27.21d0,tim=0.00002419d0,dist=0.5291d0
       real*8,parameter    :: temp=315774d0,freq=219463.343d0
+      real*8,parameter    :: kB=3.166815d-6
 
 ! Classical environment parameters
       real*8,parameter    :: pi=3.14159265d0  !DACOS(-1.d0)
       real*8              :: beta
+      logical             :: lbeta
 !      real*8              :: mp 
       real*8              :: kT
 

@@ -23,7 +23,14 @@
 !mass, beta parameters for Tully's Models
       if(keymodel .le. 3)then  
         mp = 2000.0d0
-        beta = mp(1,1)/(P0*P0)   !mp/(P0**2)
+        !write(*,*) ' lbeta = ', lbeta
+        if (.not. lbeta) then
+          beta = mp(1,1)/(P0*P0)   !mp/(P0**2)
+          !write(*,*) 'mp in loop ', mp
+          !write(*,*) 'P0 in loop ', P0
+          !write(*,*) 'beta in loop ', beta
+        endif
+        !write(*,*) 'beta = ', beta
 !        beta = 10000
 
         R0 = -15.d0

@@ -72,6 +72,7 @@
       mdkey = 1 ! surface method : 1=rpmd, 2: cmd
 
       beta = 0.d0
+      lbeta = .false.
 !      mp = 1.d0
       iseed = 0
 
@@ -147,8 +148,8 @@
            ntraj = intstr(directive,lenrec,idum)
 
 !  testing rgr             
-         elseif(findstring('beta',directive,idum))then
-            beta = dblstr(directive,lenrec,idum)
+         !elseif(findstring('beta',directive,idum))then
+         !   beta = dblstr(directive,lenrec,idum)
 
          elseif(findstring('model',directive,idum))then
 !c     selection of model
@@ -390,6 +391,12 @@
          elseif(findstring('iprint',directive,idum))then
 !c     number of printing
            iskip = intstr(directive,lenrec,idum)
+
+         elseif(findstring('beta',directive,idum))then  !BAJ
+!c     number of printing
+           lbeta = .true.
+           beta = dblstr(directive,lenrec,idum)
+           write(*,*) 'beta = ', beta
 
          elseif(findstring('finish',directive,idum))then
 !c     safe termination of reading CONTROL file
