@@ -322,21 +322,24 @@
       implicit none
 
       character :: JOBZ,UPLO
-      integer   :: INFO
-      integer   :: N,NAP,LDZ
+      integer*8   :: INFO
+      integer*8   :: N,NAP,LDZ
       integer   :: I,J,IND
       real*8    :: AP(nstates*(nstates+1)/2),WORK(3*nstates)
       real*8    :: EVALUES(nstates)
       real*8    :: CRV(nstates,nstates),EVECT(nstates,nstates)
        
-      N=nstates
+      N=INT(nstates,8)
       NAP=N*(N+1)/2
       LDZ=N
 
       EVALUES=0.
       EVECT=0.
-      JOBZ='V' ! calculate both eigenvalue and eigenvector
+      AP=0.0
+      INFO=0
+      WORK=0.0
 
+      JOBZ='V' ! calculate both eigenvalue and eigenvector
       UPLO='L' ! lower diagonal matrix
 
       IND=0
