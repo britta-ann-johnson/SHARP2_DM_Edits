@@ -62,6 +62,9 @@
       omega = 0
       modelname = 'Model'
       method = 'FSSH'
+      !VARIABLES FOR PIMD SAMPLING
+      sigma = 0
+
 
       vrkey = 0  !velocity reversal key
       nfrust_hop = 0  ! number of frustrated hop
@@ -132,6 +135,11 @@
          elseif(findstring('nequ',directive,idum))then
 !c     number of rpmd sample
            nequil = intstr(directive,lenrec,idum)
+
+         elseif(findstring('sigma',directive,idum))then
+!c     rpmd sample parameter
+           sigma = dblstr(directive,lenrec,idum)
+           write(*,*) 'sigma = ', sigma
 
          elseif(findstring('pimd',directive,idum))then
            if(findstring('pile',directive,idum))then

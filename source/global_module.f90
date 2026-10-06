@@ -94,6 +94,8 @@
       integer :: mdkey
       real(8) :: taut
 
+!!! added for pimd sampling
+      real(8) :: sigma
 
 !!! added for bead approximation      
       integer :: apkey
