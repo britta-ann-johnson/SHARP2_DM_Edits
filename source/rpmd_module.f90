@@ -92,6 +92,139 @@
 
       end subroutine grhel
 
+
+
+      subroutine virial_kinetic(rp,fp,samp_energy)
+!**********************************************************************
+!     SHARP PACK subroutine to calculate energy based on harmonic potential for PIMD sampling
+!     for PIMD sampling: V = 1/2*mp*omega^2*(r-R0)^2 omega=2*hbar/(mp * sigma^2)
+!     authors    - BAJ 
+
+      use global_module
+      use modelvar_module, only : mp
+      implicit none
+
+      integer             :: ip,ibd
+      real*8              :: rp(np,nb),fp(np,nb)
+      real*8              :: rc
+      real*8, intent(out) :: samp_energy
+      real*8              :: omega_pot, omega_n
+      integer             :: ibd_p
+
+      !sigma = 0.75d0 !0.25d0 !0.50d0 !2.00d0
+      samp_energy = 0.0d0
+      do ip=1,np
+         omega_n = real(dble(nb))/(beta*hbar)
+         rc = sum(rp(ip,1:nb))/real(dble(nb))
+         do ibd=1,nb
+            ibd_p = ibd+1
+            if (ibd.eq.nb) ibd_p = 1
+             samp_energy = samp_energy + (rp(ip,ibd)-rc)*fp(ip,ibd)
+         enddo
+      enddo
+
+      samp_energy = 1.0d0/(2.0d0*beta) + (1.0d0/(2.0*dble(real(nb))))* samp_energy
+
+
+
+      end subroutine virial_kinetic
+
+
+
+      subroutine primitive_kinetic(rp,samp_energy)
+!**********************************************************************
+!     SHARP PACK subroutine to calculate energy based on harmonic potential for PIMD sampling
+!     for PIMD sampling: V = 1/2*mp*omega^2*(r-R0)^2 omega=2*hbar/(mp * sigma^2)
+!     authors    - BAJ 
+
+      use global_module
+      use modelvar_module, only : mp
+      implicit none
+
+      integer             :: ip,ibd
+      real*8              :: rp(np,nb)
+      real*8, intent(out) :: samp_energy
+      real*8              :: omega_pot, omega_n
+      integer             :: ibd_p
+
+      !sigma = 0.75d0 !0.25d0 !0.50d0 !2.00d0
+      samp_energy = 0.0d0
+      do ip=1,np
+         omega_n = real(dble(nb))/(beta*hbar)
+         do ibd=1,nb
+            ibd_p = ibd+1
+            if (ibd.eq.nb) ibd_p = 1
+             samp_energy = samp_energy + 0.5*mp(ip,ibd)*omega_n**2*(rp(ip,ibd)-rp(ip,ibd_p))**2
+         enddo
+      enddo
+
+      !write(*,*) 'primitive kinetic energy = ', samp_energy
+
+      samp_energy = real(dble(nb))/(2.0d0*beta) - samp_energy
+
+      !write(*,*) 'primitive kinetic energy with term is  ', samp_energy
+
+
+
+      end subroutine primitive_kinetic
+
+      subroutine pimd_sampling_energy_nospring(rp,samp_energy)
+!**********************************************************************
+!     SHARP PACK subroutine to calculate energy based on harmonic potential for PIMD sampling
+!     for PIMD sampling: V = 1/2*mp*omega^2*(r-R0)^2 omega=2*hbar/(mp * sigma^2)
+!     authors    - BAJ 
+
+      use global_module
+      use modelvar_module, only : mp
+      implicit none
+
+      integer             :: ip,ibd
+      real*8              :: rp(np,nb)
+      real*8, intent(out) :: samp_energy
+      real*8              :: omega_pot, omega_n
+      real*8              :: k,A,C
+      integer             :: ibd_p
+
+      !sigma = 0.75d0 !0.25d0 !0.50d0 !2.00d0
+
+        samp_energy = 0.0d0
+        do ip=1,np
+           omega_pot = 2.0d0*hbar/(mp(ip,1)*sigma**2)
+           do ibd=1,nb
+             samp_energy = samp_energy + 0.5*mp(ip,ibd)*omega_pot**2*(rp(ip,ibd)-R0)**2
+           enddo
+        enddo
+
+      end subroutine pimd_sampling_energy_nospring
+
+      subroutine pimd_sampling_energy(rp,samp_energy)
+!**********************************************************************
+!     SHARP PACK subroutine to calculate energy based on harmonic potential for PIMD sampling
+!     for PIMD sampling: V = 1/2*mp*omega^2*(r-R0)^2 omega=2*hbar/(mp * sigma^2)
+!     authors    - BAJ 
+
+      use global_module
+      use modelvar_module, only : mp
+      implicit none
+
+      integer             :: ip,ibd
+      real*8              :: rp(np,nb)
+      real*8, intent(out) :: samp_energy
+      real*8              :: omega_pot, omega_n
+      real*8              :: k,A,C
+      integer             :: ibd_p
+
+      !sigma = 0.75d0 !0.25d0 !0.50d0 !2.00d0
+        samp_energy = 0.0d0
+        do ip=1,np
+           omega_pot = 2.0d0*hbar/(mp(ip,1)*sigma**2)
+           do ibd=1,nb
+             samp_energy = samp_energy + 0.5*mp(ip,ibd)*omega_pot**2*(rp(ip,ibd)-R0)**2
+           enddo
+        enddo
+
+      end subroutine pimd_sampling_energy
+
       subroutine pimd_sampling_force(rp,fp)
 !**********************************************************************
 !     SHARP PACK subroutine to calculate force based on harmonic potential for PIMD sampling
@@ -120,6 +253,37 @@
 
 
       end subroutine pimd_sampling_force
+
+
+      subroutine pimd_sampling_force_nospring(rp,fp)
+!**********************************************************************
+!     SHARP PACK subroutine to calculate force based on harmonic potential for PIMD sampling
+!     for PIMD sampling: V = 1/2*mp*omega^2*(r-R0)^2 omega=2*hbar/(mp * sigma^2)
+!     authors    - BAJ 
+
+      use global_module
+      use modelvar_module, only : mp
+      implicit none
+
+      integer             :: ip,ibd
+      real*8              :: rp(np,nb)
+      real*8, intent(out) :: fp(np,nb)
+      real*8              :: omega_pot, omega_n
+      real*8              :: k,A,C
+      integer             :: ibd_p
+
+      !sigma = 0.75d0 !0.25d0 !0.50d0 !2.00d0
+
+        do ip=1,np
+           omega_pot = 2.0d0*hbar/(mp(ip,1)*sigma**2)
+           do ibd=1,nb
+             fp(ip,ibd) = -mp(ip,ibd)*omega_pot**2*(rp(ip,ibd)-R0)
+           enddo
+        enddo
+
+
+      end subroutine pimd_sampling_force_nospring
+
 
       subroutine freerp (nf,p,q)
 !**********************************************************************

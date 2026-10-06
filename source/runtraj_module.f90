@@ -743,8 +743,8 @@
 
   ! write velocity distribution if vsamp is not fixed
   if(V0key .ne. 0)then
-  open(nrite_samp,file='sampling_vel.out',status='unknown')
-  do ip = 1, np
+          open(nrite_samp,file='sampling_vel.out',status='unknown')
+          do ip = 1, np
     do ib = 1, nb
        xmin = minval(vp0samp(ip,ib,:))
        xmax = maxval(vp0samp(ip,ib,:))
@@ -884,8 +884,11 @@
   integer,intent(in) :: itraj
   real*8,intent(out) :: rp_pimd(np,nb,ntraj),vp_pimd(np,nb,ntraj)
 
-  integer :: i,j,ismpl
-  real*8  :: systmp,rgr
+  integer :: i,j,ismpl, ib, ip, ibd
+  real*8  :: systmp,rgr, ke, samp_energy, virial_energy, primitive_energy
+  real*8  :: fp_samp(np,nb)
+  real*8  :: vp_candidate(np,nb)
+  real*8  :: vcentroid_candidate(np)
 
   if((nsample .gt. 0).and.(nsample-nequil) .lt. ntraj)then
     write(0,*) 'Increase number of pimd nsample step'
@@ -898,7 +901,9 @@
   if(lnorm .and. R0key.eq.1) call realft(rp_samp,np,nb,-1)
  
   open(nrite_pimd,file='pimd_sample.out',status='unknown',access='append')
-  write(nrite_pimd,'(1x,A)') '# Traj  Time(au)   Temp   Rgr   rp(np,nb)     vp(np,nb) '
+  open(222,file='pimd_energies.out',status='unknown',access='append')
+  write(nrite_pimd,'(1x,A)') '# Traj  Time(au)   Temp   PotEnergy Energy Rgr   rp(np,nb)     vp(np,nb) '
+  write(222,'(1x,A)') '# Traj  Time(au)   PotEnergy PrimEnergy VirialEnergy TotalEnergy1 TotalEnergy2 '
 
   ismpl = 0
   !nskip = int((nsample-nequil)/ntraj)
@@ -919,13 +924,42 @@
       call calcRg(itraj,i*dt,rp_samp,rgr)
     
 ! write pimd sampling trajectory for 1st-trajectory only        
-      systmp = sum(vp_samp*vp_samp*mp)/(np*nb)*temp
+      !systmp = sum(vp_samp*vp_samp*mp)/(np*nb)*temp
+      ke = 0.0
+      do ip = 1, np
+        do ib = 1, nb
+          ke = ke + 0.5d0*mp(ip,ib)*vp_samp(ip,ib)*vp_samp(ip,ib)
+        enddo
+      enddo
 
-      write(nrite_pimd,'(i7,1x,f15.3,1x,1000f15.5)') itraj,i*dt,systmp,rgr,(rp_samp(j,:),j=1,min(5,np)),(vp_samp(j,:),j=1,min(5,np))
+      systmp = 2.0*ke/(np*nb)*temp
+
+      samp_energy = 0.0d0
+      call pimd_sampling_energy_nospring(rp_samp,samp_energy)
+      samp_energy = samp_energy/real(dble(nb))
+
+
+
+      fp_samp = 0.0d0
+      call pimd_sampling_force_nospring(rp_samp,fp_samp)
+
+
+
+      primitive_energy = 0.0d0
+      virial_energy = 0.0d0
+      call primitive_kinetic(rp_samp,primitive_energy)
+      call virial_kinetic(rp_samp,fp_samp,virial_energy)
+
+      !write(*,*) 'dt_pimd = ', dt_pimd
+
+      write(nrite_pimd,'(i7,1x,f15.3,1x,1000f15.5)') itraj,i*dt_pimd,systmp,samp_energy, samp_energy+virial_energy, rgr,(rp_samp(j,:),j=1,min(5,np)),(vp_samp(j,:),j=1,min(5,np)), (fp_samp(j,:),j=1,min(5,np))
+      write(222,'(i7,1x,f15.3,1x,1000f15.5)') itraj,i*dt_pimd, samp_energy, primitive_energy, virial_energy, samp_energy+primitive_energy, samp_energy+virial_energy 
     endif
 
   enddo
+  close(11)
   close(nrite_pimd)
+  close(222)
 
   if((nsample.gt.0).and.(ntraj.ne.ismpl))write(0,*) 'pimd sample NOT matching with ntraj!!'
 
