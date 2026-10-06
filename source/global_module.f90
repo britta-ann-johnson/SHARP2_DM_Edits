@@ -96,6 +96,7 @@
 
 !!! added for pimd sampling
       real(8) :: sigma
+      real(8) :: dt_pimd
 
 !!! added for bead approximation      
       integer :: apkey

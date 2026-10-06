@@ -30,7 +30,12 @@
 !     apply PILE thermostat - 1/2 step
       if(lpimd)call pile_thermo(istart,vp)      
 
-      call grhel(rp,fp)
+      if (keymodel==7) then
+        call grhel(rp,fp)
+      else
+        call pimd_sampling_force(rp,fp)
+      endif
+
 
       vp = vp + dt2*fp/mp
 
@@ -42,7 +47,11 @@
 
       vp = p/mp
 
-      call grhel(rp,fp)
+      if (keymodel==7) then
+        call grhel(rp,fp)
+      else
+        call pimd_sampling_force(rp,fp)
+      endif
 
       vp = vp + dt2*fp/mp
 
@@ -83,6 +92,34 @@
 
       end subroutine grhel
 
+      subroutine pimd_sampling_force(rp,fp)
+!**********************************************************************
+!     SHARP PACK subroutine to calculate force based on harmonic potential for PIMD sampling
+!     for PIMD sampling: V = 1/2*mp*omega^2*(r-R0)^2 omega=2*hbar/(mp * sigma^2)
+!     authors    - BAJ 
+
+      use global_module
+      use modelvar_module, only : mp
+      implicit none
+
+      integer             :: ip,ibd
+      real*8              :: rp(np,nb)
+      real*8, intent(out) :: fp(np,nb)
+      real*8              :: omega_pot, omega_n
+      real*8              :: k,A,C
+      integer             :: ibd_p, ibd_m
+
+      !sigma = 0.75d0 !0.25d0 !0.50d0 !2.00d0
+
+        do ip=1,np
+           omega_pot = 2.0d0*hbar/(mp(ip,1)*sigma**2)
+           do ibd=1,nb
+             fp(ip,ibd) = -mp(ip,ibd)*omega_pot**2*(rp(ip,ibd)-R0)
+           enddo
+        enddo
+
+
+      end subroutine pimd_sampling_force
 
       subroutine freerp (nf,p,q)
 !**********************************************************************
